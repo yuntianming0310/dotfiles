@@ -1,0 +1,7 @@
+.DS_Store
+*.bak
+*.bak.*
+nvim/nvim.log
+nvim/.claude/
+herdr/layouts/.state/
+herdr/mods/*/gpui-kit.d.ts
