@@ -13,12 +13,14 @@ dotfiles/
 ├── iterm2/             # Synced via iTerm2 PrefsCustomFolder
 │   ├── com.googlecode.iterm2.plist
 │   └── catppuccin-mocha.itermcolors
-└── herdr/              # User-owned Herdr configs -> ~/.config/herdr-app/*
-    ├── settings.json
-    ├── keys.json
-    ├── AGENTS.local.md
-    ├── layouts/my-terminals.json
-    └── mods/tmux-prefix/
+├── herdr/              # User-owned Herdr configs -> ~/.config/herdr-app/*
+│   ├── settings.json
+│   ├── keys.json
+│   ├── AGENTS.local.md
+│   ├── layouts/my-terminals.json
+│   └── mods/tmux-prefix/
+└── agy/                # Antigravity CLI statusline -> ~/.gemini/antigravity-cli/statusline.sh
+    └── statusline.sh
 ```
 
 ## Quick Setup (New Machine)

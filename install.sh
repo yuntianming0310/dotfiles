@@ -41,6 +41,9 @@ link_path "$DOTFILES_DIR/herdr/AGENTS.local.md" "$HOME/.config/herdr-app/AGENTS.
 link_path "$DOTFILES_DIR/herdr/layouts/my-terminals.json" "$HOME/.config/herdr-app/layouts/my-terminals.json"
 link_path "$DOTFILES_DIR/herdr/mods/tmux-prefix" "$HOME/.config/herdr-app/mods/tmux-prefix"
 
+# Antigravity CLI (agy)
+link_path "$DOTFILES_DIR/agy/statusline.sh" "$HOME/.gemini/antigravity-cli/statusline.sh"
+
 # iTerm2（使用原生 PrefsCustomFolder 同步，避免 cfprefsd 覆盖软链接）
 if [ "$(uname -s)" = "Darwin" ]; then
   defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$DOTFILES_DIR/iterm2"
