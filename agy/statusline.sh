@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Catppuccin Mocha 24-bit ANSI colors
+# Catppuccin Mocha 柔和文字配色
 RST=$'\033[0m'
-BOLD=$'\033[1m'
 C_BLUE=$'\033[38;2;137;180;250m'
-C_MAUVE=$'\033[38;2;203;166;247m'
 C_TEXT=$'\033[38;2;205;214;244m'
 C_SUBTEXT=$'\033[38;2;166;173;200m'
 C_OVERLAY=$'\033[38;2;108;112;134m'
@@ -18,10 +16,10 @@ C_TEAL=$'\033[38;2;148;226;213m'
 PAYLOAD="$(cat)"
 
 if [ -z "$PAYLOAD" ] || ! command -v jq >/dev/null 2>&1; then
-  printf '%s◈ Ctx%s %s--%s %s│%s %s⚡ Usage%s %s--%s\n' \
-    "$C_BLUE" "$RST" "$C_OVERLAY" "$RST" \
+  printf '%sctx%s %s--%s  %s|%s  %susage%s %s--%s\n' \
+    "$C_SUBTEXT" "$RST" "$C_OVERLAY" "$RST" \
     "$C_SURFACE" "$RST" \
-    "$C_MAUVE" "$RST" "$C_OVERLAY" "$RST"
+    "$C_SUBTEXT" "$RST" "$C_OVERLAY" "$RST"
   exit 0
 fi
 
@@ -50,20 +48,6 @@ format_duration() {
   else
     printf '%ds' "$secs"
   fi
-}
-
-render_bar() {
-  local pct_int="$1"
-  local color="$2"
-  local width=8
-  local filled=$(( (pct_int * width + 50) / 100 ))
-  [ "$filled" -gt "$width" ] && filled="$width"
-  [ "$filled" -lt 0 ] && filled=0
-  local empty=$((width - filled))
-  local bar_fill="" bar_empty="" i
-  for ((i = 0; i < filled; i++)); do bar_fill+="█"; done
-  for ((i = 0; i < empty; i++)); do bar_empty+="░"; done
-  printf '%s%s%s%s%s' "$color" "$bar_fill" "$C_SURFACE" "$bar_empty" "$RST"
 }
 
 # 单次 jq 同时提取 context_window 与全部 quota bucket（用 | 分隔，避免 bash 折叠连续空白字符）
@@ -97,7 +81,7 @@ PARSED="$(printf '%s' "$PAYLOAD" | jq -r '
   )
 ' 2>/dev/null || true)"
 
-CTX_OUT="${C_BLUE}${BOLD}◈ Ctx${RST} ${C_OVERLAY}--${RST}"
+CTX_OUT="${C_SUBTEXT}ctx${RST} ${C_OVERLAY}--${RST}"
 QUOTA_SEGMENTS=()
 
 while IFS='|' read -r kind f1 f2 f3 f4 f5; do
@@ -139,10 +123,9 @@ while IFS='|' read -r kind f1 f2 f3 f4 f5; do
         ctx_color="$C_BLUE"
       fi
 
-      ctx_bar="$(render_bar "$ctx_pct_int" "$ctx_color")"
       used_str="$(format_tokens "$used_tok")"
       total_str="$(format_tokens "$ctx_size")"
-      CTX_OUT="${C_BLUE}${BOLD}◈ Ctx${RST} ${ctx_bar} ${ctx_color}${BOLD}${used_str}${RST}${C_OVERLAY}/${RST}${C_TEXT}${total_str}${RST} ${C_SUBTEXT}(${ctx_pct_fmt}%)${RST}"
+      CTX_OUT="${C_SUBTEXT}ctx${RST} ${ctx_color}${used_str}${RST}${C_OVERLAY}/${RST}${C_TEXT}${total_str}${RST} ${C_OVERLAY}(${ctx_pct_fmt}%)${RST}"
     fi
   elif [ "$kind" = "QUOTA" ]; then
     bucket="$f1"
@@ -175,18 +158,17 @@ while IFS='|' read -r kind f1 f2 f3 f4 f5; do
         q_color="$C_GREEN"
       fi
 
-      q_bar="$(render_bar "$pct_int" "$q_color")"
-      seg="${C_TEXT}${bucket}${RST} ${q_bar} ${q_color}${BOLD}${pct_fmt}%${RST}${C_SUBTEXT} left${RST}"
+      seg="${C_TEXT}${bucket}${RST} ${q_color}${pct_fmt}%${RST} ${C_SUBTEXT}left${RST}"
     elif [ -n "$amount" ]; then
       q_color="$C_TEAL"
       [ "$disabled" = "true" ] && q_color="$C_RED"
-      seg="${C_TEXT}${bucket}${RST} ${q_color}${BOLD}${amount}${RST}${C_SUBTEXT} left${RST}"
+      seg="${C_TEXT}${bucket}${RST} ${q_color}${amount}${RST} ${C_SUBTEXT}left${RST}"
     else
       continue
     fi
 
     if [ -n "$reset_sec" ] && [ "$reset_sec" -gt 0 ] 2>/dev/null; then
-      seg+=" ${C_OVERLAY}(↻ $(format_duration "$reset_sec"))${RST}"
+      seg+=" ${C_OVERLAY}($(format_duration "$reset_sec"))${RST}"
     fi
 
     QUOTA_SEGMENTS+=("$seg")
@@ -194,13 +176,13 @@ while IFS='|' read -r kind f1 f2 f3 f4 f5; do
 done <<< "$PARSED"
 
 if [ "${#QUOTA_SEGMENTS[@]}" -eq 0 ]; then
-  QUOTA_OUT="${C_MAUVE}${BOLD}⚡ Usage${RST} ${C_OVERLAY}--${RST}"
+  QUOTA_OUT="${C_SUBTEXT}usage${RST} ${C_OVERLAY}--${RST}"
 else
-  QUOTA_OUT="${C_MAUVE}${BOLD}⚡ Usage${RST} "
+  QUOTA_OUT="${C_SUBTEXT}usage${RST} "
   for i in "${!QUOTA_SEGMENTS[@]}"; do
-    [ "$i" -gt 0 ] && QUOTA_OUT+=" ${C_SURFACE}·${RST} "
+    [ "$i" -gt 0 ] && QUOTA_OUT+="${C_OVERLAY}, ${RST}"
     QUOTA_OUT+="${QUOTA_SEGMENTS[$i]}"
   done
 fi
 
-printf '%s %s│%s %s\n' "$CTX_OUT" "$C_SURFACE" "$RST" "$QUOTA_OUT"
+printf '%s  %s|%s  %s\n' "$CTX_OUT" "$C_SURFACE" "$RST" "$QUOTA_OUT"
