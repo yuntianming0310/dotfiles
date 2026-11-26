@@ -16,10 +16,10 @@ C_TEAL=$'\033[38;2;148;226;213m'
 PAYLOAD="$(cat)"
 
 if [ -z "$PAYLOAD" ] || ! command -v jq >/dev/null 2>&1; then
-  printf '%sctx%s %s--%s  %s|%s  %susage%s %s--%s\n' \
+  printf '%sctx%s %s--%s  %s|%s  %s--%s\n' \
     "$C_SUBTEXT" "$RST" "$C_OVERLAY" "$RST" \
     "$C_SURFACE" "$RST" \
-    "$C_SUBTEXT" "$RST" "$C_OVERLAY" "$RST"
+    "$C_OVERLAY" "$RST"
   exit 0
 fi
 
@@ -50,7 +50,19 @@ format_duration() {
   fi
 }
 
-# 单次 jq 同时提取 context_window 与全部 quota bucket（用 | 分隔，避免 bash 折叠连续空白字符）
+short_label() {
+  local raw="$1"
+  # 去掉 gemini- / 3p- 前缀（当前模型已在默认状态栏右侧显示）
+  raw="${raw#gemini-}"
+  raw="${raw#3p-}"
+  case "$raw" in
+    weekly) printf 'wk' ;;
+    daily)  printf '1d' ;;
+    *)      printf '%s' "$raw" ;;
+  esac
+}
+
+# 单次 jq 提取上下文窗口，并按当前模型自动筛选对应配额桶（Gemini -> gemini-*，Claude/GPT -> 3p-*）
 PARSED="$(printf '%s' "$PAYLOAD" | jq -r '
   (
     [
@@ -63,21 +75,29 @@ PARSED="$(printf '%s' "$PAYLOAD" | jq -r '
     ] | join("|")
   ),
   (
-    (.quota // {})
-    | if type == "object" then
-        to_entries
-        | sort_by(.key)
-        | .[]
-        | [
-            "QUOTA",
-            .key,
-            (if (.value.remaining_fraction | type) == "number" then (.value.remaining_fraction | tostring) else "" end),
-            (if (.value.remaining_amount | type) == "number" then (.value.remaining_amount | tostring) else "" end),
-            (if (.value.reset_in_seconds | type) == "number" then (.value.reset_in_seconds | floor | tostring) else "" end),
-            (if .value.disabled == true then "true" else "false" end)
-          ]
-        | join("|")
-      else empty end
+    ((.model.id // .model.display_name // "") | ascii_downcase) as $m
+    | ((.quota // {}) | if type == "object" then to_entries else [] end) as $all
+    | (
+        if ($m | contains("gemini")) then
+          ($all | map(select(.key | startswith("gemini"))))
+        elif ($m != "") then
+          ($all | map(select(.key | startswith("3p"))))
+        else
+          $all
+        end
+      ) as $matched
+    | (if ($matched | length) > 0 then $matched else $all end)
+    | sort_by(.key)
+    | .[]
+    | [
+        "QUOTA",
+        .key,
+        (if (.value.remaining_fraction | type) == "number" then (.value.remaining_fraction | tostring) else "" end),
+        (if (.value.remaining_amount | type) == "number" then (.value.remaining_amount | tostring) else "" end),
+        (if (.value.reset_in_seconds | type) == "number" then (.value.reset_in_seconds | floor | tostring) else "" end),
+        (if .value.disabled == true then "true" else "false" end)
+      ]
+    | join("|")
   )
 ' 2>/dev/null || true)"
 
@@ -135,6 +155,8 @@ while IFS='|' read -r kind f1 f2 f3 f4 f5; do
     disabled="$f5"
     [ -z "$bucket" ] && continue
 
+    label="$(short_label "$bucket")"
+
     if [ -n "$frac" ]; then
       pct_fmt="$(LC_NUMERIC=C awk -v f="$frac" 'BEGIN {
         p = f * 100;
@@ -158,11 +180,11 @@ while IFS='|' read -r kind f1 f2 f3 f4 f5; do
         q_color="$C_GREEN"
       fi
 
-      seg="${C_TEXT}${bucket}${RST} ${q_color}${pct_fmt}%${RST} ${C_SUBTEXT}left${RST}"
+      seg="${C_SUBTEXT}${label}${RST} ${q_color}${pct_fmt}%${RST}"
     elif [ -n "$amount" ]; then
       q_color="$C_TEAL"
       [ "$disabled" = "true" ] && q_color="$C_RED"
-      seg="${C_TEXT}${bucket}${RST} ${q_color}${amount}${RST} ${C_SUBTEXT}left${RST}"
+      seg="${C_SUBTEXT}${label}${RST} ${q_color}${amount}${RST}"
     else
       continue
     fi
@@ -176,11 +198,11 @@ while IFS='|' read -r kind f1 f2 f3 f4 f5; do
 done <<< "$PARSED"
 
 if [ "${#QUOTA_SEGMENTS[@]}" -eq 0 ]; then
-  QUOTA_OUT="${C_SUBTEXT}usage${RST} ${C_OVERLAY}--${RST}"
+  QUOTA_OUT="${C_OVERLAY}--${RST}"
 else
-  QUOTA_OUT="${C_SUBTEXT}usage${RST} "
+  QUOTA_OUT=""
   for i in "${!QUOTA_SEGMENTS[@]}"; do
-    [ "$i" -gt 0 ] && QUOTA_OUT+="${C_OVERLAY}, ${RST}"
+    [ "$i" -gt 0 ] && QUOTA_OUT+=" ${C_SURFACE}·${RST} "
     QUOTA_OUT+="${QUOTA_SEGMENTS[$i]}"
   done
 fi
