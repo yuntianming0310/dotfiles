@@ -1,0 +1,63 @@
+autoload -Uz vcs_info
+precmd() { vcs_info }
+zstyle ':vcs_info:git:*' formats '%F{red}⎇ %b%f'
+setopt PROMPT_SUBST
+PROMPT='💩 %F{blue}%1~%f %# '
+RPROMPT='%F{8}⏱ %*%f ${vcs_info_msg_0_}'
+
+# directory stack
+setopt auto_pushd
+setopt pushd_ignore_dups
+setopt pushd_silent
+export DIRSTACKSIZE=10
+
+# alias
+alias ..='cd ..'
+alias ...='cd ../..'
+alias cl='clear'
+alias ll='ls -lSha'
+alias bp='nvim ~/.zshrc'
+alias sa='source ~/.zshrc;echo "ZSH aliases sourced."'
+alias d='dirs -v'
+alias gs='git status'
+alias ga='git add .'
+alias gc='git commit'
+alias gps='git push'
+alias gbr='git branch'
+
+# --- 设置Zsh历史记录条数 ---
+SAVEHIST=500    # 保存在文件中的历史记录数量
+HISTSIZE=500    # 当前终端会话内存中保留的历史记录数量
+
+typeset -U path
+
+path+=$HOME/bin
+path+=/opt/homebrew/sbin
+path+=/opt/homebrew/bin
+path+=/opt/homebrew/opt/openjdk/bin
+
+# Any other paths can be added here in the same way
+# e.g., path+=/some/other/path
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Antigravity CLI / local bin
+export PATH="$HOME/.local/bin:$PATH"
+
+# 本机私有配置（如 API Key、临时隧道等，不纳入 dotfiles）
+[ -r "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
+
+# Zsh 历史自动补全 + 命令语法高亮（Catppuccin Mocha 配色，须置于 .zshrc 末尾）
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#6c7086'
+[ -r "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && source "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[ -r "$HOME/.zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh" ] && source "$HOME/.zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh"
+[ -r "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] && source "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
