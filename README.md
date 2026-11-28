@@ -10,6 +10,9 @@ dotfiles/
 ├── nvim/               # -> ~/.config/nvim
 ├── tmux/
 │   └── tmux.conf       # -> ~/.tmux.conf
+├── zsh/
+│   ├── zshrc           # -> ~/.zshrc (local secrets go to ~/.zshrc.local)
+│   └── catppuccin_mocha-zsh-syntax-highlighting.zsh  # -> ~/.zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh
 ├── iterm2/             # Synced via iTerm2 PrefsCustomFolder
 │   ├── com.googlecode.iterm2.plist
 │   └── catppuccin-mocha.itermcolors

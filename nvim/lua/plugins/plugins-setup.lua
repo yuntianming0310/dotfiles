@@ -56,6 +56,7 @@ return require("lazy").setup({
         },
         integrations = {
           cmp = true,
+          diffview = true,
           gitsigns = true,
           markdown = true,
           nvimtree = true,
@@ -93,6 +94,9 @@ return require("lazy").setup({
   -- Treesitter（语法高亮）
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    version = false, -- 跟随 main 分支的最新提交
+    lazy = false,
     build = ":TSUpdate",
   },
 
@@ -141,6 +145,28 @@ return require("lazy").setup({
   -- Git 状态显示
   {
     "lewis6991/gitsigns.nvim",
+  },
+
+  -- Git Diff 审阅（配合 Agent CLI 审查改动）
+  {
+    "sindrets/diffview.nvim",
+    cmd = { "DiffviewOpen", "DiffviewClose", "DiffviewFileHistory" },
+    keys = {
+      { "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Diffview Open" },
+      { "<leader>gq", "<cmd>DiffviewClose<cr>", desc = "Diffview Close" },
+    },
+  },
+
+  -- 外部文件变动热重载（配合 tmux 侧边 Agent CLI）
+  {
+    "diogo464/hotreload.nvim",
+    event = "VeryLazy",
+    opts = {
+      -- 默认 nil 使用原生文件监听（macOS FSEvents）
+      -- 若个别 CLI 原子写入漏刷新，可改为 500（毫秒轮询兜底）
+      interval = nil,
+      silent = true,
+    },
   },
 
   -- 快速注释

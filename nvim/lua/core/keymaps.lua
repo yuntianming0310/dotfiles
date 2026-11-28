@@ -29,3 +29,20 @@ keymap.set({ "n", "v" }, "<leader>p", function()
     timeout_ms = 1000,
   })
 end, { desc = "Format Code" })
+
+-- 复制文件位置给 Agent CLI（支持普通模式单行和可视模式行范围）
+keymap.set("n", "<leader>yr", function()
+  local ref = string.format("@%s:L%d", vim.fn.expand("%:."), vim.fn.line("."))
+  vim.fn.setreg("+", ref)
+  vim.notify("Copied: " .. ref)
+end, { desc = "Copy file:line for Agent" })
+
+keymap.set("v", "<leader>yr", function()
+  local s, e = vim.fn.line("v"), vim.fn.line(".")
+  if s > e then
+    s, e = e, s
+  end
+  local ref = string.format("@%s:L%d-L%d", vim.fn.expand("%:."), s, e)
+  vim.fn.setreg("+", ref)
+  vim.notify("Copied: " .. ref)
+end, { desc = "Copy file:line range for Agent" })

@@ -34,6 +34,10 @@ link_path "$DOTFILES_DIR/nvim" "$HOME/.config/nvim"
 # tmux
 link_path "$DOTFILES_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 
+# zsh
+link_path "$DOTFILES_DIR/zsh/zshrc" "$HOME/.zshrc"
+link_path "$DOTFILES_DIR/zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh" "$HOME/.zsh/catppuccin_mocha-zsh-syntax-highlighting.zsh"
+
 # Herdr（仅软链用户自定义配置，避开内置 mods 与运行态文件）
 link_path "$DOTFILES_DIR/herdr/settings.json" "$HOME/.config/herdr-app/settings.json"
 link_path "$DOTFILES_DIR/herdr/keys.json" "$HOME/.config/herdr-app/keys.json"
