@@ -93,6 +93,9 @@ return require("lazy").setup({
   -- Treesitter（语法高亮）
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    version = false, -- 跟随 main 分支的最新提交
+    lazy = false,
     build = ":TSUpdate",
   },
 

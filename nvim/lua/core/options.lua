@@ -11,8 +11,10 @@ opt.shiftwidth = 2
 opt.expandtab = true
 opt.autoindent = true
 
--- 防止包裹
-opt.wrap = false
+-- 自动折行：按单词折行，并保持续行缩进
+opt.wrap = true
+opt.linebreak = true
+opt.breakindent = true
 
 -- 光标行
 opt.cursorline = true
